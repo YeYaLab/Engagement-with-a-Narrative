@@ -1,0 +1,32 @@
+function isfc_rsa_nullDist = create_nullDist_for_isfc_rsa(dataMat_combined, behave_mat, number_of_iterations)
+
+% load('/media/ubuntu/4TeraDrive/ABC_story/data_analysis/isRSA_with_parcells/Yeo_and_Fan_122_parcells/sig_isrsa_values.mat');
+% this is a vector of significant parcels of isrsa
+
+% load('/media/ubuntu/4TeraDrive/ABC_story/data_analysis/ISFC/with_run_script/Yeo_and_Fan_122_rois/reduced_dataMat.mat')
+% this is the reduced_dataMat of 122 prcells of YeoFan
+
+% load('/media/ubuntu/4TeraDrive/ABC_story/data_analysis/behavioral_analysis_2/overall_engagement.mat');
+% this is the behave_mat
+
+rng('shuffle');
+[nNets, nSub, ~] = size(dataMat_combined);
+% nets_names = {'Attention', 'Auditory', 'DMN', 'Language', 'Reward', 'Salience'};
+% nets_names = {'Primary_Auditory_Cortex_r_1','Secondary_auditory_cortex_r_2','Precentral_gyrus_l_3','Secondary_auditory_cortex_l_4','Primary_Auditory_Cortex_l_5','Temporoparietal_junction_r_6','Superior_temporal_sulcus_r_7','Medial_temporal_junction_r_8','Superior_temporal_sulcus_r_9','Medial_temporal_gyrus_r_10','Temporal_pole_r_11','Superior_temporal_gyrus_r_12','Middle_frontal_gyrus_r_13','Inferior_frontal_gyrus_r_14','Superior_frontal_gyrus_r_15','Superior_frontal_gyrus_l_16','Inferior_frontal_gyrus_l_17','Middle_frontal_gyrus_l_18','Superior_temporal_sulcus_l_19','Temporal_pole_l_20','Medial_temporal_gyrus_l_21','Superior_temporal_sulcus_l_22','Middle_temporal_gyrus_l_23','Superior_temporal_sulcus_l_24','Temporoparietal_junction_l_25','Caudate_nucleus_r_26','Inferior_frontal_gyrus_r_27','Superior_frontal_gyrus_r_28','Superior_temporal_gyrus_r_29','Superior_temporal_gyrus_l_30','Superior_frontal_gyrus_l_31','Inferior_frontal_gyrus_l_32','inferior_parietal_lobule_r_33','Middle_frontal_gyrus_r_34','Precuneus_or_Posterior_Cingulate_r_35','medial_Prefrontal_cortex_r_36','Middle_temporal_gyrus_r_37','Middle_temporal_gyrus_l_38','Medial_prefrontal_cortex_l_39','Precuneus_l_40','Middle_frontal_gyrus_l_41','inferior_parietal_lobule_l_42','Precuneus_or_Posterior_Cingulate_r_43','inferior_parietal_lobule_or_Angular_Gyrus_r_44','Middle_frontal_gyrus_r_45','Superior_frontal_gyrus_r_46','Medial_Prefrontal_cortex_m_47','Superior_frontal_gyrus_l_48','Middle_frontal_gyrus_l_49','inferior_parietal_lobule_or_Angular_Gyrus_l_50','Precuneus_or_Posterior_Cingulate_l_51','parahippocampal_gyrus_l_52'};
+% nets_names = {'Auditory Network', 'Ventral Language network', 'Dorsal Language network', 'DMNa', 'DMNb (MTL Based)'};
+% nets_names = cellstr(string(1:nNets));
+
+ids=find(triu(ones(nNets),1)); % indicating the indices of where the binary mask should be if the subjectPairwise_correlation(:, :, network_pair) matrix were a vector (up to botom on the columns). the binary mask ignores the diagonal...
+network_combinations = nchoosek(1:nNets, 2); 
+numOfCombinations = size(network_combinations, 1);
+netsVec = 1:nNets;
+dataMat_combined_TRS_first = permute(dataMat_combined, [3 2 1]);
+
+isfc_rsa_nullDist = zeros(numOfCombinations,number_of_iterations); %output matrix
+
+for i = 1:number_of_iterations 
+    % pe = netsVec(randperm(length(netsVec))); % if using a Mantel test
+    randNIfft_mat = real(phase_shuf_group_data(dataMat_combined_TRS_first));
+    [~, ~, isfc_rsa_for_nullDist] = isfc_rsa(permute(randNIfft_mat, [3 2 1]), behave_mat, 0, '');
+    isfc_rsa_nullDist(:, i) = isfc_rsa_for_nullDist;
+end
